@@ -1,0 +1,31 @@
+{
+    "name": "Abidler Yolu",
+    "short_name": "Abidler",
+    "description": "Takımınla hedefleri parçala - Dava arkadaşlarının ortak mücadelesi",
+    "start_url": "/index.html",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "portrait-primary",
+    "background_color": "#0f1117",
+    "theme_color": "#138D46",
+    "icons": [
+        {
+            "src": "icon.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "icon.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "productivity",
+        "lifestyle"
+    ],
+    "lang": "tr",
+    "dir": "ltr"
+}

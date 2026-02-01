@@ -1,0 +1,60 @@
+{
+    "rules": {
+        "users": {
+            "$uid": {
+                ".read": "auth != null && auth.uid === $uid",
+                ".write": "auth != null && auth.uid === $uid",
+                "currentGroupId": {
+                    ".write": "auth != null"
+                }
+            }
+        },
+        "groups": {
+            "$groupId": {
+                ".read": "auth != null && data.child('members').child(auth.uid).exists()",
+                "metadata": {
+                    ".write": "!data.exists() || data.child('createdBy').val() === auth.uid || root.child('groups').child($groupId).child('members').child(auth.uid).child('role').val() === 'admin'"
+                },
+                "tasks": {
+                    ".write": "root.child('groups').child($groupId).child('members').child(auth.uid).child('role').val() === 'admin'"
+                },
+                "notes": {
+                    ".write": "root.child('groups').child($groupId).child('members').child(auth.uid).child('role').val() === 'admin'"
+                },
+                "logs": {
+                    "$date": {
+                        "$logId": {
+                            ".write": "auth != null && $logId.contains(auth.uid)"
+                        }
+                    }
+                },
+                "completions": {
+                    "$taskId": {
+                        "$userId": {
+                            ".write": "auth != null && auth.uid === $userId"
+                        }
+                    }
+                },
+                "members": {
+                    ".read": "auth != null",
+                    "$memberId": {
+                        ".write": "root.child('groups').child($groupId).child('members').child(auth.uid).child('role').val() === 'admin' || auth.uid === $memberId"
+                    }
+                }
+            }
+        },
+        "inviteCodes": {
+            ".read": "auth != null",
+            ".write": "auth != null",
+            ".indexOn": [
+                ".value"
+            ]
+        },
+        "audit_logs": {
+            "$uid": {
+                ".read": "auth != null && auth.uid === $uid",
+                ".write": "auth != null"
+            }
+        }
+    }
+}

@@ -1,0 +1,14 @@
+# --- GEREKSİZLER VE ÇÖPLER ---
+node_modules/
+.DS_Store
+Thumbs.db
+
+# --- GÜVENLİK (BURASI ÇOK ÖNEMLİ) ---
+# Gerçek şifrelerin olduğu dosya gitmesin:
+firebase-config.js
+
+# Eğer varsa ortam değişkenleri dosyası gitmesin:
+.env
+
+# Editör ayarları gitmesin:
+.vscode/

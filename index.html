@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Friendly - Squad Goals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Bebas+Neue&family=Oswald:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="shortcut icon" type="image/png" href="icon.png">
+
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#138D46">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Abidler Yolu">
+    <link rel="apple-touch-icon" href="icon.png">
+
+    <script type="module" src="script.js"></script>
+</head>
+
+<body>
+
+    <!-- APP FRAME - Mobil Uygulama Çerçevesi -->
+    <div id="app-frame">
+        <!-- BACKGROUND -->
+        <div class="aurora-bg"></div>
+        <div class="bg-blob blob-1"></div>
+        <div class="bg-blob blob-2"></div>
+
+        <!-- LOADER -->
+        <div id="loader">
+            <div class="spinner"></div>
+        </div>
+
+        <!-- LOGIN SCREEN -->
+        <div id="loginSection" class="screen">
+            <div style="flex:1; display:flex; align-items:center;">
+                <div class="center-card">
+                    <div class="logo-text">Friendly</div>
+                    <p style="color:var(--text-muted); margin-bottom:2rem;">Takımınla hedefleri parçala.</p>
+
+                    <form id="loginForm">
+                        <input type="email" id="loginEmail" placeholder="E-Posta">
+                        <div class="password-input-wrapper">
+                            <input type="password" id="loginPass" placeholder="Şifre">
+                            <button type="button" class="password-toggle"
+                                onclick="togglePasswordVisibility('loginPass', this)">
+                                <i data-lucide="eye-off" size="18"></i>
+                            </button>
+                        </div>
+                        <button class="btn-primary" onclick="handleEmailLogin(event)">Giriş Yap</button>
+                        <div style="margin:1rem 0; font-size:0.8rem; color:var(--text-muted);">veya</div>
+                        <button type="button" class="btn-ghost" onclick="handleGoogleLogin()">
+                            <div style="display:flex; align-items:center; justify-content:center; gap:10px;">
+                                <i data-lucide="chrome"></i> Google ile devam et
+                            </div>
+                        </button>
+                        <p style="margin-top:1.5rem; font-size:0.9rem; cursor:pointer; color:var(--primary);"
+                            onclick="toggleAuthMode()">Hesabın yok mu? Kayıt Ol</p>
+                    </form>
+
+                    <form id="registerForm" class="hidden">
+                        <input type="text" id="regName" placeholder="İsim Soyisim">
+                        <input type="email" id="regEmail" placeholder="E-Posta">
+                        <div class="password-input-wrapper">
+                            <input type="password" id="regPass" placeholder="Şifre (Min 6 karakter)">
+                            <button type="button" class="password-toggle"
+                                onclick="togglePasswordVisibility('regPass', this)">
+                                <i data-lucide="eye-off" size="18"></i>
+                            </button>
+                        </div>
+                        <button class="btn-primary" onclick="handleRegister(event)">Kayıt Ol</button>
+                        <p style="margin-top:1.5rem; font-size:0.9rem; cursor:pointer; color:var(--primary);"
+                            onclick="toggleAuthMode()">Zaten üye misin? Giriş Yap</p>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- SETUP SCREEN -->
+        <div id="groupSetupSection" class="screen">
+            <div style="flex:1; display:flex; align-items:center;">
+                <div class="center-card">
+                    <h2>Ekibin Yok 😕</h2>
+                    <p style="color:var(--text-muted); margin-bottom:2rem;">Bir takıma katıl veya yeni bir tane kur.</p>
+
+                    <button class="btn-primary" onclick="createGroup()">
+                        <i data-lucide="plus-circle" style="vertical-align:middle; margin-right:5px;"></i> Yeni Takım
+                        Kur
+                    </button>
+
+                    <div style="margin:1.5rem 0; border-top:1px solid var(--border); position:relative;">
+                        <span
+                            style="position:absolute; top:-10px; left:50%; transform:translateX(-50%); background:var(--surface); padding:0 10px; font-size:0.8rem;">VEYA</span>
+                    </div>
+
+                    <input type="text" id="inviteCodeInput" placeholder="DAVET KODU"
+                        style="text-align:center; letter-spacing:4px; font-weight:700; text-transform:uppercase;">
+                    <button class="btn-ghost" onclick="joinGroup()">Takıma Katıl</button>
+
+                    <button class="btn-icon" onclick="handleLogout()" style="margin-top:2rem;">Çıkış Yap</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN APP -->
+        <div id="dashboardSection" class="screen">
+            <div class="header">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <img src="logo.png" alt="Abidler Yolu" style="height: 50px; object-fit: contain;">
+                    <div class="header-slogan">
+                        <span>"Nehirden Denize Özgür Filistin"</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <!-- Desktop Navigation -->
+                    <nav class="desktop-nav">
+                        <button class="desktop-nav-btn active" data-target="tabArena">
+                            <i data-lucide="trophy" size="18"></i>
+                            <span>Arena</span>
+                        </button>
+                        <button class="desktop-nav-btn" data-target="tabTasks">
+                            <i data-lucide="check-square" size="18"></i>
+                            <span>Görevler</span>
+                        </button>
+                        <button class="desktop-nav-btn" data-target="tabNotes">
+                            <i data-lucide="layout" size="18"></i>
+                            <span>Notlar</span>
+                        </button>
+                        <button class="desktop-nav-btn" data-target="tabProfile">
+                            <i data-lucide="user" size="18"></i>
+                            <span>Profil</span>
+                        </button>
+                    </nav>
+                    <button class="btn-icon theme-toggle" id="themeIcon" onclick="toggleTheme()"><i data-lucide="moon"
+                            size="18"></i></button>
+                    <div class="profile-dropdown-wrapper">
+                        <div class="header-avatar" id="headerAvatar" onclick="toggleProfileDropdown()">
+                            <span id="headerAvatarContent">👤</span>
+                        </div>
+                        <div class="profile-dropdown" id="profileDropdown">
+                            <div class="profile-dropdown-header">
+                                <strong id="dropdownUserName">Kullanıcı</strong>
+                                <span id="dropdownUserEmail">email@example.com</span>
+                            </div>
+                            <div class="profile-dropdown-divider"></div>
+                            <button class="profile-dropdown-item" onclick="handleLogout()">
+                                <i data-lucide="log-out" size="16"></i>
+                                <span>Çıkış Yap</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-area">
+                <!-- TAB: ARENA -->
+                <div id="tabArena" class="tab-content active">
+                    <div class="section-title">SQUAD STATUS</div>
+                    <div class="arena-grid" id="arenaGrid">
+                        <!-- JS ile doldurulacak -->
+                    </div>
+
+                    <div class="section-title" style="margin-top:2rem;">SON GİZLİ AKTİVİTELER</div>
+                    <div id="stalkerList" class="log-list">
+                        <!-- Stalker Logs -->
+                    </div>
+                </div>
+
+                <!-- TAB: TASKS -->
+                <div id="tabTasks" class="tab-content">
+                    <div id="pendingSection" class="hidden">
+                        <div class="section-title" style="color:var(--warning);">ONAY BEKLEYENLER</div>
+                        <div id="pendingTasksList"></div>
+                    </div>
+
+                    <div class="section-title">GÜNCEL GÖREVLER</div>
+                    <div id="tasksList">
+                        <!-- Tasks -->
+                    </div>
+                </div>
+
+                <!-- TAB: SQUAD BOARD (NOTES) -->
+                <div id="tabNotes" class="tab-content">
+                    <div class="section-title">SQUAD BOARD</div>
+                    <div id="notesList" class="notes-grid">
+                        <!-- Notes -->
+                    </div>
+                </div>
+
+                <!-- TAB: PROFILE -->
+                <div id="tabProfile" class="tab-content">
+                    <!-- PROFILE BANNER -->
+                    <div class="profile-banner"></div>
+
+                    <div class="profile-header">
+                        <div class="profile-photo" id="profilePhoto"></div>
+                        <h2 id="profileName">...</h2>
+                        <span class="palestine-slogan-text">ZORLUK ÇEKTİĞİN KADAR TEMENNİ ETTİĞİN ŞEYE ULAŞIRSIN</span>
+                        <p id="profileEmail" style="color:var(--text-muted); font-size:0.9rem;">...</p>
+
+                        <!-- STREAK DISPLAY -->
+                        <div id="streakDisplay" class="streak-display" style="display:none;">
+                            🔥 <span id="streakCount">0</span> Günlük Seri
+                        </div>
+
+                        <div class="invite-box" onclick="copyCode()">
+                            <i data-lucide="ticket"></i>
+                            <code id="inviteCodeDisplay">---</code>
+                            <i data-lucide="copy" size="14"></i>
+                        </div>
+
+                        <!-- GRUP ADI BÖLÜMÜ -->
+                        <div id="profileGroupNameBox" class="group-name-box">
+                            <span class="group-name-text">👉 Grup Adı 👈</span>
+                        </div>
+                    </div>
+
+                    <div id="groupMembersSection">
+                        <div class="section-title" onclick="toggleGroupMembers()"
+                            style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; user-select:none;">
+                            <span>GRUP ÜYELERİ</span>
+                            <i data-lucide="chevron-down" id="groupMembersChevron"
+                                style="transition: transform 0.3s;"></i>
+                        </div>
+                        <div id="groupMembersContent"
+                            style="max-height:1000px; overflow:hidden; transition:max-height 0.3s ease;">
+                            <div id="groupMembersList">
+                                <!-- JS ile doldurulacak -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="aboutSection">
+                        <div class="section-title" onclick="toggleAboutSection()"
+                            style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; user-select:none;">
+                            <span>HAKKINDA</span>
+                            <i data-lucide="chevron-down" id="aboutChevron" style="transition: transform 0.3s;"></i>
+                        </div>
+                        <div id="aboutContent" class="about-content collapsed">
+                            <div class="about-text">
+                                <p><strong><span id="aboutGroupName">Abidler Yolu</span></strong>, dava arkadaşlarının
+                                    ortak
+                                    mücadelesini organize etmek ve
+                                    birbirlerini motive etmek için tasarlanmış özel bir platform. Arkadaş ve yoldaş
+                                    grupları
+                                    için hazırlanan bu uygulama, hem günlük görevlerin takibini yapmanızı hem de ekip
+                                    ruhunu
+                                    canlı tutmanızı sağlar.</p>
+
+                                <p><strong>Neden Abidler Yolu?</strong> Bir dava, tek başına değil, omuz omuza
+                                    yürüdüğünüz
+                                    insanlarla kazanılır. Bu uygulama, birlikte mücadele eden ekiplerin hedeflerini net
+                                    bir
+                                    şekilde belirlemesini, ilerlemeyi şeffaf bir şekilde takip etmesini ve birbirlerini
+                                    hesap vermekle sorumlu kılmasını sağlar.</p>
+
+                                <p><strong>Arena Bölümü:</strong> Tüm ekip üyelerinin günlük performansını tek bir
+                                    ekranda
+                                    görebilirsiniz. Kim ne kadar ilerlemiş, kim daha fazla çaba göstermeli - her şey net
+                                    ve
+                                    şeffaf. Lider sıralamaları ile rekabetçi bir ortam oluşturarak motivasyonu
+                                    artırabilirsiniz.</p>
+
+                                <p><strong>Görevler:</strong> Yönetici (Admin) tarafından belirlenen görevler, tüm ekip
+                                    üyelerine atanır. Günlük, tekrarlayan veya süreli görevler oluşturabilir, tamamlama
+                                    oranlarını takip edebilirsiniz. Her görev tamamlandığında sistem otomatik olarak
+                                    kaydeder ve ilerlemenizi gösterir.</p>
+
+                                <p><strong>Notlar ve Duyurular:</strong> Önemli duyuruları, motivasyon mesajlarını veya
+                                    strateji metinlerini tüm ekiple paylaşın. Resim ekleyerek görsel içerikler de
+                                    oluşturabilir, böylece mesajlarınızı daha etkili hale getirebilirsiniz.</p>
+
+                                <p><strong>Gizlilik ve Güvenlik:</strong> Sadece davet kodu ile ekibe katılım sağlanır.
+                                    Her
+                                    ekip kendi özel alanında çalışır, veriler güvenli Firebase alt yapısında saklanır.
+                                </p>
+
+                                <p>Abidler Yolu ile hedeflerinize daha organize, daha motive ve daha güçlü bir şekilde
+                                    ilerleyin. Unutmayın: Yolculuk tek başına değil, birlikte daha anlamlıdır!</p>
+                            </div>
+                            <div class="about-poem">
+                                <p>Gezdim Halep ile Şam'ı<br>Eyledim ilim talep<br>Meğer ilim bir hiçmiş<br>İllâ edep,
+                                    illâ
+                                    edep</p>
+                                <p>Girdim ilim meclisine<br>Eyledim kıldım talep<br>Dediler ilim geride<br>İllâ edep
+                                    illâ
+                                    edep.</p>
+                                <p class="quote-highlight">"Ya olduğun gibi görün ya da göründüğün gibi ol."</p>
+                                <p class="quote-secondary">"Cihat olmadan bir toplum var olmaz, olamaz. Bir toplumu
+                                    ayakta
+                                    tutan cihaddır. Ülkenin saadetini ayakta tutmak için cihad şarttır."</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-title">AYARLAR</div>
+
+                    <!-- Ayarlar Grid -->
+                    <div class="settings-grid">
+                        <!-- PWA Install Button -->
+                        <button id="installAppBtn" class="btn-ghost" onclick="installApp()">
+                            <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                                <span><i data-lucide="download-cloud" size="16"
+                                        style="vertical-align:middle; margin-right:8px;"></i> Uygulamayı Ana Ekrana
+                                    Ekle</span>
+                                <i data-lucide="chevron-right"></i>
+                            </div>
+                        </button>
+
+                        <button class="btn-ghost btn-leave" onclick="leaveGroup()">
+                            <div style="display:flex; justify-content:space-between; width:100%;">
+                                <span><i data-lucide="log-out" size="16"
+                                        style="vertical-align:middle; margin-right:8px;"></i> Takımdan Ayrıl</span>
+                                <i data-lucide="chevron-right"></i>
+                            </div>
+                        </button>
+
+                        <button class="btn-ghost btn-logout" onclick="handleLogout()">
+                            <div style="display:flex; justify-content:space-between; width:100%;">
+                                <span><i data-lucide="power" size="16"
+                                        style="vertical-align:middle; margin-right:8px;"></i> Çıkış Yap</span>
+                                <i data-lucide="chevron-right"></i>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FABs -->
+            <button id="addTaskFab" class="fab hidden" onclick="openModal('addTaskModal')">
+                <i data-lucide="plus" size="28"></i>
+            </button>
+            <button id="addNoteFab" class="fab hidden" onclick="openModal('addNoteModal')">
+                <i data-lucide="sticky-note" size="28"></i>
+            </button>
+
+            <!-- BOTTOM NAV -->
+            <nav class="bottom-nav">
+                <button class="nav-btn active" data-target="tabArena">
+                    <i data-lucide="trophy"></i>
+                </button>
+                <button class="nav-btn" data-target="tabTasks">
+                    <i data-lucide="check-square"></i>
+                </button>
+                <button class="nav-btn" data-target="tabNotes">
+                    <i data-lucide="layout"></i>
+                </button>
+                <button class="nav-btn" data-target="tabProfile">
+                    <i data-lucide="user"></i>
+                </button>
+            </nav>
+        </div>
+
+        <!-- MODAL: ADD TASK -->
+        <div id="addTaskModal" class="modal-overlay" onclick="if(event.target===this) closeModal('addTaskModal')">
+            <div class="modal">
+                <div class="drag-bar"></div>
+                <h3 style="margin-bottom:1.5rem; font-size:1.2rem;">Yeni Görev Ata</h3>
+
+                <input type="text" id="newTaskTitle" placeholder="Görev Başlığı (Örn: 100 Şınav)" autofocus>
+
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:1rem; padding:0 5px;">
+                    <input type="checkbox" id="noDeadlineCheck" checked style="width:20px; height:20px; margin:0;">
+                    <label for="noDeadlineCheck" style="font-size:0.9rem;">Süresiz / Limitsiz</label>
+                </div>
+
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:1rem; padding:0 5px;">
+                    <input type="checkbox" id="isRecurringCheck" style="width:20px; height:20px; margin:0;">
+                    <label for="isRecurringCheck" style="font-size:0.9rem;">🔁 Her Gün Tekrarla</label>
+                </div>
+
+                <div id="deadlineInputGroup" style="display:none; animation:fadeIn 0.2s;">
+                    <label style="display:block; font-size:0.8rem; color:var(--text-muted); margin-bottom:5px;">Son
+                        Tarih</label>
+                    <input type="datetime-local" id="newTaskDeadline">
+                </div>
+
+                <button class="btn-primary" onclick="createTask()">Ekle</button>
+            </div>
+        </div>
+
+        <!-- MODAL: ADD NOTE -->
+        <div id="addNoteModal" class="modal-overlay" onclick="if(event.target===this) closeModal('addNoteModal')">
+            <div class="modal">
+                <div class="drag-bar"></div>
+                <h3 style="margin-bottom:1.5rem; font-size:1.2rem;">Yeni Not Ekle</h3>
+
+                <input type="text" id="newNoteTitle" placeholder="Başlık" autofocus>
+                <textarea id="newNoteText" placeholder="Notun içeriği..." rows="4"
+                    style="width:100%; background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:12px; padding:1rem; color:var(--text); outline:none; font-family:var(--font); margin-bottom:12px; resize:none;"></textarea>
+
+                <!-- Resim URL veya Dosya Yükleme -->
+                <label style="display:block; font-size:0.9rem; margin-bottom:8px; color:var(--text-muted);">
+                    Resim Ekle (İsteğe Bağlı)
+                </label>
+                <input type="text" id="newNoteImageUrl" placeholder="Resim URL'si (örn: https://...)"
+                    style="margin-bottom:8px;">
+
+                <div class="file-input-wrapper">
+                    <label for="newNoteFile" class="file-label">
+                        <i data-lucide="image"></i> veya Dosyadan Yükle
+                    </label>
+                    <input type="file" id="newNoteFile" accept="image/*" style="display:none;">
+                    <span id="fileNameDisplay"
+                        style="font-size:0.8rem; color:var(--text-muted); margin-left:10px;"></span>
+                </div>
+
+                <button class="btn-primary" onclick="createNote()">Yayınla</button>
+            </div>
+        </div>
+
+        <!-- MODAL: VIEW NOTE -->
+        <div id="viewNoteModal" class="modal-overlay" onclick="if(event.target===this) closeModal('viewNoteModal')">
+            <div class="modal" style="height:80vh;">
+                <div class="drag-bar"></div>
+                <div id="viewNoteContent" style="overflow-y:auto; height:100%;">
+                    <!-- Dynamic Content -->
+                </div>
+            </div>
+        </div>
+
+    </div> <!-- #app-frame kapanışı -->
+
+    <!-- MODAL: USER DETAIL (app-frame dışında) -->
+    <div id="userDetailModal" class="modal-overlay" onclick="if(event.target===this) closeModal('userDetailModal')">
+        <div class="modal" style="height:70vh;">
+            <div class="drag-bar"></div>
+            <div id="userDetailContent" style="overflow-y:auto; height:100%; padding:1.5rem;">
+                <!-- Dynamic Content -->
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
