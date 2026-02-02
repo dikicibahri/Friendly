@@ -24,9 +24,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # DÜZELTİLEN KISIM BURASI:
+      # Şifreyi önce ortam değişkenine (ENV) alıyoruz, sonra yazdırıyoruz.
+      # Bu sayede tırnak işaretleri bozulmuyor.
       - name: Create Firebase Config from Secret
-        run: |
-          echo "${{ secrets.FIREBASE_CONFIG }}" > firebase-config.js
+        env:
+          FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
+        run: echo "$FIREBASE_CONFIG" > firebase-config.js
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
