@@ -3194,3 +3194,73 @@ body {
         border-radius: 12px;
     }
 }
+
+/* ==========================================================================
+   INVITE BOX VE PAYLAŞ BUTONU
+   ========================================================================== */
+
+.invite-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 12px;
+}
+
+.invite-box:hover {
+    background: rgba(139, 101, 139, 0.1);
+    border-color: #8b658b;
+}
+
+.invite-box code {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    letter-spacing: 2px;
+}
+
+/* Grup Kodu Paylaş Butonu */
+.share-code-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    margin-top: 12px;
+    background: linear-gradient(135deg, #8b658b 0%, #6b4f6b 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.share-code-btn:hover {
+    background: linear-gradient(135deg, #9b759b 0%, #7b5f7b 100%);
+    transform: scale(1.02);
+    box-shadow: 0 4px 15px rgba(139, 101, 139, 0.3);
+}
+
+.share-code-btn:active {
+    transform: scale(0.98);
+}
+
+/* ==========================================================================
+   TEMA BUTONLARI HOVER DÜZELTMESİ
+   ========================================================================== */
+
+/* Tema butonu hover - yeşil değil mor */
+.theme-btn:hover,
+.header-avatar:hover {
+    background: rgba(139, 101, 139, 0.1) !important;
+}
+
+/* Bottom nav hover düzeltmesi */
+.nav-btn:hover {
+    background: rgba(139, 101, 139, 0.1);
+}
