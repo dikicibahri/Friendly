@@ -1,9 +1,9 @@
 {
-    "name": "Abidler Yolu",
-    "short_name": "Abidler",
+    "name": "Friendly",
+    "short_name": "Friendly",
     "description": "Takımınla hedefleri parçala - Dava arkadaşlarının ortak mücadelesi",
-    "start_url": "/index.html",
-    "scope": "/",
+    "start_url": "./index.html",
+    "scope": "./",
     "display": "standalone",
     "orientation": "portrait-primary",
     "background_color": "#0f1117",

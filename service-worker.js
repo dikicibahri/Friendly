@@ -1,12 +1,12 @@
 const CACHE_NAME = 'abidler-yolu-v1';
 const urlsToCache = [
-    '/',
-    '/index.html',
-    '/style.css',
-    '/script.js',
-    '/firebase-config.js',
-    '/logo.png',
-    '/manifest.json'
+    './',
+    './index.html',
+    './style.css',
+    './script.js',
+    './firebase-config.js',
+    './logo.png',
+    './manifest.json'
 ];
 
 // Install event - cache assets

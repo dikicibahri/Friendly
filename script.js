@@ -29,7 +29,7 @@ function initApp() {
 
     // PWA Service Worker Registration
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/service-worker.js')
+        navigator.serviceWorker.register('./service-worker.js')
             .then(reg => console.log('✅ SW Kayıtlı:', reg.scope))
             .catch(err => console.log('❌ SW Hatası:', err));
     }
