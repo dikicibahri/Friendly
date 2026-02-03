@@ -94,37 +94,59 @@ function initApp() {
 
 // PWA Install Function
 window.installApp = async () => {
-    // iOS kontrolü
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isInStandaloneMode = ('standalone' in window.navigator) && window.navigator.standalone;
-
-    if (isIOS) {
-        if (isInStandaloneMode) {
-            showToast("Uygulama zaten yüklü! 🎉", "success");
-        } else {
-            showToast("📱 Paylaş → Ana Ekrana Ekle", "info");
-        }
-        return;
-    }
-
-    if (!deferredPrompt) {
-        showToast("Bu tarayıcı PWA yüklemeyi desteklemiyor. Chrome kullanmayı deneyin.", "info");
-        return;
-    }
-
-    try {
+    // Eğer tarayıcı yerel yükleme desteği sunuyorsa (Chrome/Android vb.)
+    if (deferredPrompt) {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
+        console.log(`User response to the install prompt: ${outcome}`);
         if (outcome === 'accepted') {
             showToast("Uygulama yükleniyor! 🎉", "success");
         }
         deferredPrompt = null;
         const installBtn = document.getElementById('installAppBtn');
         if (installBtn) installBtn.style.display = 'none';
-    } catch (err) {
-        showToast("Yükleme sırasında hata oluştu.", "error");
+    } else {
+        // Desteklenmeyen tarayıcılar (iOS Safari, Opera Mobile bazı sürümler vb.)
+        if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+            alert("iOS'ta yüklemek için:\n1. 'Paylaş' butonuna basın\n2. 'Ana Ekrana Ekle' seçeneğini seçin");
+        } else {
+            alert("Tarayıcı menüsünden 'Uygulamayı Yükle' veya 'Ana Ekrana Ekle' seçeneğini kullanın.");
+        }
     }
 };
+
+// --- HELPER: IMAGE COMPRESSION ---
+function compressImage(file, maxWidth = 800, quality = 0.7) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                if (width > maxWidth) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob((blob) => {
+                    resolve(blob);
+                }, 'image/jpeg', quality);
+            };
+            img.onerror = (err) => reject(err);
+        };
+        reader.onerror = (err) => reject(err);
+    });
+}
 
 // --- AUTH ---
 window.handleGoogleLogin = async () => {
@@ -563,58 +585,6 @@ window.deleteTask = async (taskId) => {
 };
 
 // --- NOTE ACTIONS (Squad Board) ---
-
-// Resim sıkıştırma yardımcı fonksiyonu
-async function compressImage(file, maxWidth = 800, quality = 0.7) {
-    return new Promise((resolve, reject) => {
-        try {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const img = new Image();
-                    img.onload = () => {
-                        try {
-                            const canvas = document.createElement('canvas');
-                            let width = img.width;
-                            let height = img.height;
-
-                            // Oranı koru, max genişliğe göre küçült
-                            if (width > maxWidth) {
-                                height = (height * maxWidth) / width;
-                                width = maxWidth;
-                            }
-
-                            canvas.width = width;
-                            canvas.height = height;
-
-                            const ctx = canvas.getContext('2d');
-                            ctx.drawImage(img, 0, 0, width, height);
-
-                            canvas.toBlob((blob) => {
-                                if (blob) {
-                                    resolve(blob);
-                                } else {
-                                    reject(new Error("Resim sıkıştırılamadı"));
-                                }
-                            }, 'image/jpeg', quality);
-                        } catch (error) {
-                            reject(error);
-                        }
-                    };
-                    img.onerror = () => reject(new Error("Resim yüklenemedi"));
-                    img.src = e.target.result;
-                } catch (error) {
-                    reject(error);
-                }
-            };
-            reader.onerror = () => reject(new Error("Dosya okunamadı"));
-            reader.readAsDataURL(file);
-        } catch (error) {
-            reject(error);
-        }
-    });
-}
-
 window.createNote = async () => {
     if (!state.isAdmin) return showToast("Sadece yönetici not ekleyebilir!", "error");
 
@@ -625,12 +595,6 @@ window.createNote = async () => {
     const file = fileInp.files[0];
 
     if (!title || !text) return showToast("Başlık ve metin zorunlu!", "error");
-
-    // Dosya boyutu kontrolü (5MB max)
-    if (file && file.size > 5 * 1024 * 1024) {
-        return showToast("Dosya boyutu çok büyük! (Max 5MB)", "error");
-    }
-
     setLoading(true);
 
     try {
@@ -640,13 +604,9 @@ window.createNote = async () => {
         if (imageUrl) {
             finalImageUrl = imageUrl;
         } else if (file) {
-            // Resmi sıkıştır
-            showToast("Resim işleniyor...", "info");
-            const compressedBlob = await compressImage(file, 800, 0.7);
-
-            // URL yoksa dosya yükle
-            const fileName = `${Date.now()}_${file.name.replace(/\.[^/.]+$/, '')}.jpg`;
-            const storageRef = sRef(storage, `notes/${state.groupId}/${fileName}`);
+            // Dosya yükle - sıkıştır
+            const compressedBlob = await compressImage(file, 1024, 0.7);
+            const storageRef = sRef(storage, `notes/${state.groupId}/${Date.now()}_img.jpg`);
             const snapshot = await uploadBytes(storageRef, compressedBlob);
             finalImageUrl = await getDownloadURL(snapshot.ref);
         }
@@ -669,6 +629,7 @@ window.createNote = async () => {
         document.getElementById('fileNameDisplay').textContent = '';
         showToast("Not yayınlandı! 📝", "success");
     } catch (e) {
+        console.error("Create Note Error:", e);
         showToast("Hata: " + e.message, "error");
     } finally {
         setLoading(false);
@@ -799,94 +760,55 @@ function viewUserDetail(member) {
     openUserDetailModal(member);
 }
 
-// Kullanıcı detay modalı için logs listener
-let userDetailLogsListener = null;
-
 function openUserDetailModal(member) {
     const today = new Date().toISOString().split('T')[0];
     const content = document.getElementById('userDetailContent');
 
-    // Render fonksiyonu
-    const renderUserDetail = () => {
-        const memberTasks = state.tasks.map(task => {
-            let isDone = false;
+    const memberTasks = state.tasks.map(task => {
+        const log = state.logs.find(l =>
+            l.taskId === task.taskId &&
+            l.userId === member.userId &&
+            l.date === today
+        );
+        const isDone = log?.status === 'done';
+        return { task, isDone };
+    });
 
-            if (task.isRecurring) {
-                // Tekrarlayan görev: bugünün loguna bak
-                const log = state.logs.find(l =>
-                    l.taskId === task.taskId &&
-                    l.userId === member.userId &&
-                    l.date === today
-                );
-                isDone = log?.status === 'done';
-            } else {
-                // Tek seferlik görev: groupCompletions'a bak
-                isDone = state.groupCompletions?.[task.taskId]?.[member.userId] === true;
-            }
+    const avatarHtml = member.userPhoto
+        ? `<img src="${member.userPhoto}" style="width:60px; height:60px; border-radius:50%; object-fit:cover;">`
+        : `<div style="width:60px; height:60px; border-radius:50%; background:var(--bg); display:flex; align-items:center; justify-content:center; font-size:2rem;">${member.avatarEmoji || '👤'}</div>`;
 
-            return { task, isDone };
-        });
+    const doneCount = memberTasks.filter(t => t.isDone).length;
+    const totalCount = memberTasks.length;
+    const progress = totalCount === 0 ? 0 : Math.round((doneCount / totalCount) * 100);
 
-        const avatarHtml = member.userPhoto
-            ? `<img src="${member.userPhoto}" style="width:60px; height:60px; border-radius:50%; object-fit:cover;">`
-            : `<div style="width:60px; height:60px; border-radius:50%; background:var(--bg); display:flex; align-items:center; justify-content:center; font-size:2rem;">${member.avatarEmoji || '👤'}</div>`;
-
-        const doneCount = memberTasks.filter(t => t.isDone).length;
-        const totalCount = memberTasks.length;
-        const progress = totalCount === 0 ? 0 : Math.round((doneCount / totalCount) * 100);
-
-        content.innerHTML = `
-            <div style="text-align:center; margin-bottom:2rem;">
-                ${avatarHtml}
-                <h2 style="margin-top:1rem; font-size:1.5rem;">${member.userName}</h2>
-                <p style="color:var(--text-muted); font-size:0.9rem;">Bugünkü İlerleme: ${progress}%</p>
+    content.innerHTML = `
+        <div style="text-align:center; margin-bottom:2rem;">
+            ${avatarHtml}
+            <h2 style="margin-top:1rem; font-size:1.5rem;">${member.userName}</h2>
+            <p style="color:var(--text-muted); font-size:0.9rem;">Bugünkü İlerleme: ${progress}%</p>
+        </div>
+        
+        <div class="section-title">BUGÜNKÜ GÖREVLER</div>
+        ${memberTasks.length === 0 ? `
+            <div style="text-align:center; padding:2rem; color:var(--text-muted);">
+                <p>Henüz görev yok.</p>
             </div>
-            
-            <div class="section-title">BUGÜNKÜ GÖREVLER</div>
-            ${memberTasks.length === 0 ? `
-                <div style="text-align:center; padding:2rem; color:var(--text-muted);">
-                    <p>Henüz görev yok.</p>
+        ` : memberTasks.map(({ task, isDone }) => `
+            <div class="task-card ${isDone ? 'done' : ''}" style="margin-bottom:0.8rem; cursor:default;">
+                <div class="check-circle ${isDone ? '' : 'disabled'}">
+                    ${isDone ? '<i data-lucide="check" size="16"></i>' : ''}
                 </div>
-            ` : memberTasks.map(({ task, isDone }) => `
-                <div class="task-card ${isDone ? 'done' : ''}" style="margin-bottom:0.8rem; cursor:default;">
-                    <div class="check-circle ${isDone ? '' : 'disabled'}">
-                        ${isDone ? '<i data-lucide="check" size="16"></i>' : ''}
-                    </div>
-                    <div class="content">
-                        <h4>${task.title}</h4>
-                    </div>
+                <div class="content">
+                    <h4>${task.title}</h4>
                 </div>
-            `).join('')}
-        `;
+            </div>
+        `).join('')}
+    `;
 
-        lucide.createIcons();
-    };
-
-    // İlk render
-    renderUserDetail();
-
-    // Real-time listener - modal açıkken logları dinle
-    if (!userDetailLogsListener) {
-        userDetailLogsListener = onValue(ref(db, `groups/${state.groupId}/logs/${today}`), () => {
-            // state.logs zaten güncelleniyor (loadGroupData'daki listener ile)
-            // Sadece modalı yeniden render et
-            if (document.getElementById('userDetailModal').classList.contains('active')) {
-                renderUserDetail();
-            }
-        });
-    }
-
+    lucide.createIcons();
     openModal('userDetailModal');
 }
-
-// Modal kapatılınca listener'ı temizle
-window.closeUserDetailModal = () => {
-    if (userDetailLogsListener) {
-        userDetailLogsListener(); // Firebase listener'ı durdur
-        userDetailLogsListener = null;
-    }
-    closeModal('userDetailModal');
-};
 
 function renderTasks() {
     const container = document.getElementById('tasksList');
@@ -1159,18 +1081,13 @@ window.openModal = (id) => document.getElementById(id).classList.add('active');
 window.closeModal = (id) => document.getElementById(id).classList.remove('active');
 
 window.copyCode = () => {
-    // Failsafe: Eğer groupData henüz yoksa hata verme
     const code = state.groupData ? state.groupData.inviteCode : '---';
+    if (code === '---') return showToast("Kod yüklenemedi!", "error");
 
-    if (code === '---') {
-        return showToast("Kod yüklenemedi, sayfayı yenile!", "error");
-    }
-
-    // Modern kopyalama yöntemi
     navigator.clipboard.writeText(code).then(() => {
-        showToast("Davet kodu kopyalandı: " + code, "success");
+        showToast("Kopyalandı: " + code, "success");
     }).catch(err => {
-        // Fallback (Eski tarayıcılar veya mobil webview için)
+        // Fallback
         const textArea = document.createElement("textarea");
         textArea.value = code;
         document.body.appendChild(textArea);
@@ -1181,37 +1098,21 @@ window.copyCode = () => {
     });
 };
 
-// Grup kodunu paylaşma (Web Share API)
-window.shareCode = async () => {
-    const code = state.groupData ? state.groupData.inviteCode : null;
-    const groupName = state.groupData ? state.groupData.groupName : 'Friendly';
-
-    if (!code) {
-        return showToast("Kod yüklenemedi!", "error");
-    }
+window.shareCode = () => {
+    const code = state.groupData ? state.groupData.inviteCode : '---';
+    if (code === '---') return showToast("Kod yüklenemedi!", "error");
 
     const shareData = {
-        title: `${groupName} - Friendly`,
-        text: `🎯 ${groupName} grubuna katıl!\n\n📋 Davet Kodu: ${code}\n\nFriendly uygulamasını aç ve bu kodu gir.`
+        title: 'Friendly Takım Daveti',
+        text: `Friendly takımına katıl! Davet Kodum: ${code}`,
+        url: window.location.href
     };
 
-    // Web Share API destekleniyorsa kullan
-    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-        try {
-            await navigator.share(shareData);
-            showToast("Paylaşıldı! 🎉", "success");
-        } catch (err) {
-            // Paylaşım iptal edildi
-            if (err.name === 'AbortError') {
-                // Kullanıcı iptal etti, sessizce geç
-            } else {
-                // Gerçek hata: kopyala
-                copyCode();
-            }
-        }
+    if (navigator.share) {
+        navigator.share(shareData).catch(() => copyCode());
     } else {
-        // Web Share API yoksa veya desteklemiyorsa kopyala
         copyCode();
+        showToast("Paylaşma desteklenmiyor, kod kopyalandı.", "info");
     }
 };
 
@@ -1419,3 +1320,58 @@ document.addEventListener('click', (e) => {
         dropdown.classList.remove('show');
     }
 });
+
+// ==========================================
+// MOBİL FİXLER VE OVERRIDE FONKSİYONLAR
+// ==========================================
+
+window.copyCode = async () => {
+    const code = state.groupData ? state.groupData.inviteCode : '---';
+    if (code === '---') return showToast("Kod yüklenemedi!", "error");
+
+    try {
+        await navigator.clipboard.writeText(code);
+        showToast("Kopyalandı: " + code, "success");
+    } catch (err) {
+        console.error('Clipboard Error:', err);
+        // Fallback: iOS ve bazı mobil tarayıcılar için
+        const textArea = document.createElement("textarea");
+        textArea.value = code;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showToast("Kopyalandı!", "success");
+        } catch (execErr) {
+            console.error('ExecCommand Error:', execErr);
+            showToast("Kopyalama başarısız, manuel seçin.", "error");
+            prompt("Kodu kopyalayın:", code);
+        }
+        document.body.removeChild(textArea);
+    }
+};
+
+window.shareCode = async () => {
+    const code = state.groupData ? state.groupData.inviteCode : '---';
+    if (code === '---') return showToast("Kod yüklenemedi!", "error");
+
+    const shareData = {
+        title: 'Friendly Takım Daveti',
+        text: `Friendly takımına katıl! Davet Kodum: ${code}`,
+        url: window.location.href
+    };
+
+    if (navigator.share) {
+        try {
+            await navigator.share(shareData);
+        } catch (err) {
+            if (err.name !== 'AbortError') copyCode();
+        }
+    } else {
+        copyCode();
+        showToast("Paylaşma desteklenmiyor, kod kopyalandı.", "info");
+    }
+};

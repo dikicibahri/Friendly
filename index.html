@@ -215,17 +215,15 @@
                             🔥 <span id="streakCount">0</span> Günlük Seri
                         </div>
 
-                        <div class="invite-box" onclick="copyCode()">
-                            <i data-lucide="ticket"></i>
-                            <code id="inviteCodeDisplay">---</code>
-                            <i data-lucide="copy" size="14"></i>
+                        <div class="invite-box" onclick="copyCode()" style="position:relative; cursor:pointer;">
+                            <i data-lucide="ticket" style="opacity:0.7;"></i>
+                            <code id="inviteCodeDisplay" style="flex:1; text-align:center;">---</code>
+                            <!-- Share Button -->
+                            <div onclick="shareCode(); event.stopPropagation();"
+                                style="padding:5px; border-radius:50%; display:flex; align-items:center; justify-content:center; transition:background 0.2s;">
+                                <i data-lucide="share-2" size="18"></i>
+                            </div>
                         </div>
-
-                        <!-- GRUP KODU PAYLAŞ BUTONU -->
-                        <button class="share-code-btn" onclick="shareCode()">
-                            <i data-lucide="share-2" size="16"></i>
-                            <span>Grup Kodunu Paylaş</span>
-                        </button>
 
                         <!-- GRUP ADI BÖLÜMÜ -->
                         <div id="profileGroupNameBox" class="group-name-box">
